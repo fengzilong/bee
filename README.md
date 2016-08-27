@@ -1,2 +1,3 @@
-# bee
-tiny mvvm
+# Bee <sup>wip</sup>
+
+> tiny mvvm

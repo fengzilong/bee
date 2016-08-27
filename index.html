@@ -1,0 +1,81 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+	<meta http-equiv="Content-type" content="text/html; charset=UTF-8" />
+	<title>bee demo</title>
+</head>
+<body>
+	<script type="text/javascript" src="./dist/bee.js"></script>
+	<script type="text/javascript">
+		let v1 = Bee.create({
+			a: 1,
+			b: {
+				c: {
+					d: 1
+				},
+				f: 2
+			}
+		});
+
+		// v1.$watch('b', ( newValue, oldValue ) => {
+		// 	console.log( 'b changed from', oldValue, 'to', newValue );
+		// }, {
+		// 	deep: true
+		// });
+
+		v1.$watch('a', ( newValue, oldValue ) => {
+			console.log( 'a changed from', oldValue, 'to', newValue );
+		}, {
+			deep: true
+		});
+
+		v1.$watch('b.f', ( newValue, oldValue ) => {
+			console.log( 'b.f changed from', oldValue, 'to', newValue );
+		}, {
+			deep: true
+		});
+
+		v1.$watch('b.c', ( newValue, oldValue ) => {
+			console.log( 'b.c changed from', oldValue, 'to', newValue );
+		}, {
+			deep: true
+		});
+
+		// Bee.bind( v1, v2 )( 'b.c', 'a' );
+
+		window.temp1 = v1;
+
+		// v1.b.c = 2;
+
+		// 这样写会销毁f的观察者
+		v1.b = {
+			c: 3
+		};
+
+		console.log( '-----' );
+
+		v1.b.f = 6;
+		v1.$set( 'b.f', 7 );
+
+		console.log( '-----' );
+
+		// 可以这样恢复对f的观察
+		// v1.b = {
+		// 	c: 6,
+		// 	f: 1
+		// };
+
+		// 或者调用$set，$set会检查descriptor，如果对应的keypath存在的话，不过有个限制，必须是一开始存在的字段，如果第一个参数是个不存在的keypath，那么不会生成观察者，这点后面可以优化
+
+		v1.$set( 'b.f', 999 );
+
+		console.log( '-----' );
+
+		v1.b.f = 9;
+
+		v1.a = 6;
+		v1.b.c = 9;
+
+		console.log( 'end' );
+	</script>
+</body>
+</html>
