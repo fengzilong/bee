@@ -184,6 +184,7 @@ class Bee {
 								let keypath = cbindings[ i ].keypath;
 								let descriptor = cbindings[ i ].descriptor;
 
+								// get current value
 								cbindings[ i ].value = self.$get( keypath );
 
 								// TODO: deepEqual
@@ -200,11 +201,6 @@ class Bee {
 
 								// regenerate getter and setter to hook
 								self.$define( keypath, descriptor );
-								// let exists = self.$exists( keypath.split( '.' ).slice( 1 ).join( '.' ), newValue );
-								// if( exists ) {
-								// } else {
-								// 	self.$delete( keypath, self.__data );
-								// }
 							}
 						}
 					}
