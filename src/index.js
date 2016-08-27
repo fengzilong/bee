@@ -1,4 +1,4 @@
-import { isPlainObject, deepClone, isPrimitive } from './utils';
+import { isPlainObject, deepClone, deepEqual, isPrimitive } from './utils';
 
 function walkKeyPath( obj, fn, parentKeyPath = '' ) {
 	var keys = Object.keys( obj );
@@ -133,6 +133,18 @@ class Bee {
 			);
 		}
 	}
+	$applyWatchers( kp, nv, ov ) {
+		const watchers = this.__binding[ kp ].watchers || [];
+		const isDeepEqual = deepEqual( nv, ov );
+
+		// execute watchers
+		for( let i = 0, len = watchers.length; i < len; i++ ) {
+			if( watchers[ i ].deep && isDeepEqual ) {
+				continue;
+			}
+			watchers[ i ].fn.call( this, nv, ov );
+		}
+	}
 	constructor( data ) {
 		const self = this;
 
@@ -141,69 +153,72 @@ class Bee {
 		walkKeyPath( data, ( v, kp ) => {
 			// define all keypath while walking
 			const descriptor = {
+				enumerable: true,
+				configurable: false,
 				get() {
 					return __binding[ kp ].value;
 				},
 				set( newValue ) {
 					let value = __binding[ kp ].value;
+
+					if( newValue === value ) {
+						return;
+					}
+
 					if( newValue !== value ) {
 						// make a clone of data at first
-						let cloned = deepClone( data );
+						const before = deepClone( data );
 
 						__binding[ kp ].value = newValue;
 						__binding[ kp ].last = value;
 
-						const watchers = __binding[ kp ].watchers;
-
-						// execute watchers in current keypath
-						for( let i = 0, len = watchers.length; i < len; i++ ) {
-							watchers[ i ].fn.call( self, newValue, deepClone( value ) );
-						}
-
-						// find parent watchers, if any parent watcher is a deep watcher, execute it
-						let pbindings = getParentBindings( kp, __binding );
-						for( let i = 0, len = pbindings.length; i < len; i++ ) {
-							let watchers = pbindings[ i ].watchers;
-							let keypath = pbindings[ i ].keypath;
-							let nv = deepClone( self.$get( keypath ) );
-							let ov = deepClone( self.$get( keypath, cloned ) );
-							for( let j = 0, len = watchers.length; j < len; j++ ) {
-								if( watchers[ j ].deep ) {
-									watchers[ j ].fn.call( self, nv, ov );
-								}
-							}
-						}
-
-						// find child watchers
-						let cbindings = getChildrenBindings( kp, __binding );
-
-						// if newValue is plainObject
+						// if newValue is plainObject, re-create getters/setters
 						if( isPlainObject( newValue ) ) {
+							// find child watchers
+							let cbindings = getChildrenBindings( kp, __binding );
+
 							// need sorting cbindings, shorter path define earlier
 							for( let i = 0, len = cbindings.length; i < len; i++ ) {
 								let keypath = cbindings[ i ].keypath;
 								let descriptor = cbindings[ i ].descriptor;
 
 								// get current value
+								// 子路径binding上的值需要我们手动更新下
 								cbindings[ i ].value = self.$get( keypath );
 
-								// TODO: deepEqual
-								if( cbindings[ i ].value !== self.$get( keypath, cloned ) ) {
-									let watchers = cbindings[ i ].watchers;
-									let nv = cbindings[ i ].value;
-									let ov = self.$get( keypath, cloned );
-									for( let j = 0, len = watchers.length; j < len; j++ ) {
-										if( watchers[ j ].deep ) {
-											watchers[ j ].fn.call( self, nv, ov );
-										}
-									}
-								}
+								self.$applyWatchers(
+									keypath,
+									deepClone( cbindings[ i ].value ),
+									self.$get( keypath, before )
+								);
 
-								// regenerate getter and setter to hook
-								self.$define( keypath, descriptor );
+								// always re-create getter and setter to hook
+								self.$define( keypath, descriptor, data );
 							}
 						}
+
+						// wait child keypath set their value, then we can get the correct value of data
+
+						const after = deepClone( data );
+
+						self.$applyWatchers(
+							kp,
+							self.$get( kp, after ),
+							self.$get( kp, before )
+						);
+
+						// find parent watchers, if any parent watcher is a deep watcher, execute it
+						let pbindings = getParentBindings( kp, __binding );
+						for( let i = 0, len = pbindings.length; i < len; i++ ) {
+							let keypath = pbindings[ i ].keypath;
+							self.$applyWatchers(
+								keypath,
+								self.$get( keypath, after ),
+								self.$get( keypath, before )
+							);
+						}
 					}
+
 					return value;
 				}
 			};
@@ -216,16 +231,25 @@ class Bee {
 				descriptor
 			};
 
-			this.$define( kp, descriptor );
+			this.$define( kp, descriptor, data );
 		} );
+
+		// copy descriptors to this
+		for( let i in __binding ) {
+			if( !~__binding[ i ].keypath.indexOf( '.' ) ) {
+				this.$define( __binding[ i ].keypath, __binding[ i ].descriptor );
+			}
+		}
 
 		this.$define( '__binding', {
 			enumerable: false,
+			configurable: false,
 			value: __binding
 		} );
 
 		this.$define( '__data', {
 			enumerable: false,
+			configurable: false,
 			value: data
 		} );
 	}
