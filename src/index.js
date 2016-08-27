@@ -123,13 +123,15 @@ class Bee {
 		path = path.split( '.' );
 		const prop = path.pop();
 
-		// TODO: if can not get this.$get( path.join( '.' ), root ), throw warning
+		let obj = this.$get( path.join( '.' ), root );
 
-		Object.defineProperty(
-			this.$get( path.join( '.' ), root ),
-			prop,
-			descriptor
-		);
+		if( !isPrimitive( obj ) ) {
+			Object.defineProperty(
+				obj,
+				prop,
+				descriptor
+			);
+		}
 	}
 	constructor( data ) {
 		const self = this;
@@ -196,13 +198,13 @@ class Bee {
 									}
 								}
 
-								let exists = self.$exists( keypath.split( '.' ).slice( 1 ).join( '.' ), newValue );
-								if( exists ) {
-									// generate getter and setter to hook
-									self.$define( keypath, descriptor );
-								} else {
-									self.$delete( keypath, self.__data );
-								}
+								// regenerate getter and setter to hook
+								self.$define( keypath, descriptor );
+								// let exists = self.$exists( keypath.split( '.' ).slice( 1 ).join( '.' ), newValue );
+								// if( exists ) {
+								// } else {
+								// 	self.$delete( keypath, self.__data );
+								// }
 							}
 						}
 					}
