@@ -242,11 +242,6 @@ class Bee {
 			this.__binding[ kp ].watchers.push({ deep, fn });
 		}
 	}
-	$compute( key, fn ) {
-		this.$define( key, {
-			value: fn.call( this.__data )
-		} );
-	}
 }
 
 export default Bee;
