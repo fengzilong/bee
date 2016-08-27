@@ -4,7 +4,8 @@
   "description": "tiny mvvm",
   "main": "index.js",
   "scripts": {
-    "dev": "onchange \"src/**/*.js\" -i -v -- rollup -c"
+    "dev": "onchange \"src/**/*.js\" -i -v -- rollup -c",
+    "test": "ava"
   },
   "repository": {
     "type": "git",
@@ -21,6 +22,7 @@
   },
   "homepage": "https://github.com/fengzilong/bee#readme",
   "devDependencies": {
+    "ava": "^0.16.0",
     "buble": "^0.13.1",
     "rollup-plugin-buble": "^0.13.0",
     "rollup-plugin-commonjs": "^3.3.1",
