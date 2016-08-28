@@ -1,4 +1,4 @@
-import eval from './eval';
+import evaluate from './eval';
 import { getVariable } from './utils';
 
 export default class {
@@ -28,7 +28,7 @@ export default class {
 				}
 
 				function update() {
-					node.textContent = eval( content, vm.__data );
+					node.textContent = evaluate( content, vm.__data );
 				}
 
 				this.bindings.push({
