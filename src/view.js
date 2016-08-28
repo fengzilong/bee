@@ -45,6 +45,21 @@ export default class {
 
 					}
 				});
+			} else {
+				const attrs = node.attributes;
+				if( attrs ) {
+					for( let i = 0, len = attrs.length; i < len; i++ ) {
+						const attr = attrs[ i ];
+						const key = attr.name;
+						const value = attr.value;
+						const directives = this.vm.$directives;
+						// TODO: hasDirective( key ), directives[ key ] is not accurate
+						if( directives[ key ] ) {
+							directives[ key ].call( this.vm, node, value );
+						}
+
+					}
+				}
 			}
 		} );
 

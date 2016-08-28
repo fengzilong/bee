@@ -70,6 +70,16 @@ export default class {
 			return root;
 		}
 	}
+	// $$set( path, value, root = this ) {
+	// 	const binding = this.__binding[ path ];
+	//
+	// 	if( !binding ) return;
+	//
+	// 	binding.last = binding.value;
+	// 	binding.value = value;
+	//
+	// 	// TODO: if isPlainObject, re-define all child keypath
+	// }
 	$set( path, value, root = this ) {
 		const segments = path.split( '.' );
 
