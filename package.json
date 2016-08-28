@@ -30,6 +30,7 @@
   },
   "dependencies": {
     "deep-equal": "^1.0.1",
-    "is-plain-obj": "^1.1.0"
+    "is-plain-obj": "^1.1.0",
+    "riot-tmpl": "^2.4.1"
   }
 }

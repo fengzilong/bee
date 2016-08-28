@@ -6,7 +6,6 @@ export default {
 	entry: 'src/index.js',
 	plugins: [
 		nodeResolve({
-			jsnext: true,
 			main: true
 		}),
 		commonjs({
