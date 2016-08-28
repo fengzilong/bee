@@ -1,3 +1,3 @@
-import { tmpl as eval } from 'riot-tmpl';
+import { tmpl as evaluate } from 'riot-tmpl';
 
-export default eval;
+export default evaluate;
